@@ -23,8 +23,16 @@ X_test = torch.from_numpy(X_test.astype(np.float32))
 y_train = torch.from_numpy(y_train.astype(np.float32))
 y_test = torch.from_numpy(y_test.astype(np.float32))
 
+# print("X_train", X_train.shape, X_train)
+# print("X_test", X_test.shape, X_test)
+# print("y_train", y_train.shape, y_train)
+# print("y_test", y_test.shape, y_test)
+
 y_train = y_train.view(y_train.shape[0], 1) # Column vector
 y_test = y_test.view(y_test.shape[0], 1)
+
+# print(y_train)
+# print(y_test)
 
 # Model
 n_samples, n_features = X_train.shape
@@ -47,10 +55,25 @@ learning_rate = 0.01
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
 # Training
-num_epochs = 100
+num_epochs = 1000
 for epoch in range(num_epochs):
   # forward pass and loss
-  model.forward(X_train)
+  y_predicted = model.forward(X_train)
+  loss = criterion(y_predicted, y_train)
   # backward pass
-
+  # f(X) = sigmoid(WX + b)
+  # W, b
+  loss.backward()
   # updates
+  #w = w - learning_rate*dw
+  optimizer.step()
+  optimizer.zero_grad()
+
+  if (epoch+1) % 10 == 0:
+    print(f"Epoch {epoch + 1}, loss = {loss.item():.4f}")
+
+with torch.no_grad():
+  y_predicted = model(X_test)
+  y_predicted_classes = y_predicted.round()
+  acc = y_predicted_classes.eq(y_test).sum() / float(y_test.shape[0])
+  print(f"Accuracy = {acc: .4f}")
